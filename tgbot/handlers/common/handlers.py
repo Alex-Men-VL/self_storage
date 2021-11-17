@@ -2,6 +2,7 @@ from telegram import ParseMode, Update
 
 from tgbot.models import User
 from tgbot.handlers.common import static_text
+from .keyboard_utils import make_keyboard_for_start_command
 
 
 def command_start(update: Update, context) -> None:
@@ -18,4 +19,7 @@ def command_start(update: Update, context) -> None:
     else:
         text = static_text.start_not_created.format(first_name=user.first_name)
 
-    update.message.reply_text(text=text)
+    update.message.reply_text(
+        text=text,
+        reply_markup=make_keyboard_for_start_command(),
+    )
