@@ -29,6 +29,13 @@ python3 manage.py migrate
 python3 manage.py createsuperuser
 ```
 
+- Инициализация основных справочников:
+``` bash
+python3 manage.py shell
+>>> from dbinit import init
+>>> init()
+```
+
 ## Запуск бота
 
 ```bash
