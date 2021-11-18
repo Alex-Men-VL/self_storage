@@ -2,7 +2,7 @@ from telegram import ParseMode, Update
 from telegram.ext import ConversationHandler
 
 from tgbot.models import StorageUser
-from tgbot.handlers.rent_common import static_text
+from tgbot.handlers.rent import static_text
 from .keyboard_utils import (
     make_keyboard_with_addresses,
     make_keyboard_with_category,
@@ -13,10 +13,21 @@ from .keyboard_utils import (
     make_keyboard_with_stuff_period_1,
     make_keyboard_with_stuff_period_2_weeks,
     make_keyboard_with_stuff_period_2_months,
+    make_keyboard_with_skip_button,
 )
 
-(ADDRESS, CATEGORY, OTHER, SEASONAL, PERIOD, FINISH, COUNT, PERIOD1,
- PERIOD2) = range(9)
+(ADDRESS,
+ CATEGORY,
+ OTHER,
+ SEASONAL,
+ PERIOD,
+ COUNT,
+ PERIOD1,
+ PERIOD2,
+ FIO,
+ PHONE,
+ DUL,
+ BIRTHDATE) = range(12)
 
 
 def send_message_with_addresses(update: Update, _):
@@ -64,7 +75,7 @@ def get_category(update: Update, rent_description):
 
 def get_dimension(update: Update, rent_description):
     dimensions = update.message.text
-    rent_description.bot_data['dimensions'] = dimensions
+    rent_description.bot_data['dimensions'] = dimensions.split(' - ')[0].split()
 
     text = static_text.choose_period_months_12
     update.message.reply_text(
@@ -83,10 +94,11 @@ def get_period(update: Update, rent_description):
         text,
         reply_markup=make_keyboard_with_confirmation()
     )
-    return FINISH
+    return FIO
 
 
 '''Конец ветки другое'''
+
 '''Ветка сезонные вещи'''
 
 
@@ -142,10 +154,15 @@ def get_period_count(update: Update, rent_description):
         text,
         reply_markup=make_keyboard_with_confirmation()
     )
-    return FINISH
+    return FIO
 
 
 '''Конец сезонные вещи другое'''
+
+''' Начало сценария после нажатия кнопки Забронировать'''
+
+
+'''Конец сценария'''
 
 
 def done(update: Update, rent_description):

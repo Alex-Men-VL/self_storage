@@ -10,6 +10,7 @@ from .static_text import (
     more_or_less_month,
     period_3_weeks,
     period_6_months,
+    skip_step,
 )
 
 
@@ -109,7 +110,7 @@ def make_keyboard_with_stuff_period_2_weeks() -> ReplyKeyboardMarkup:
     reply_markup = ReplyKeyboardMarkup(
         build_menu(buttons, n_cols=1),
         resize_keyboard=True,
-        one_time_keyboard=True
+        one_time_keyboard=True,
     )
     return reply_markup
 
@@ -119,6 +120,17 @@ def make_keyboard_with_stuff_period_2_months() -> ReplyKeyboardMarkup:
 
     reply_markup = ReplyKeyboardMarkup(
         build_menu(buttons, n_cols=2),
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+    return reply_markup
+
+
+def make_keyboard_with_skip_button() -> ReplyKeyboardMarkup:
+    buttons = [KeyboardButton(month) for month in skip_step]
+
+    reply_markup = ReplyKeyboardMarkup(
+        build_menu(buttons, n_cols=1),
         resize_keyboard=True,
         one_time_keyboard=True
     )

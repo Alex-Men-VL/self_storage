@@ -34,8 +34,24 @@ reserve = [
 ]
 
 # Button text for the 'Другое' category
-dimensions = [str(number) for number in range(1, 11)]
-period_12_months = [str(month) for month in range(1, 13)]
+dimensions_price = {str(dimensions): 590 + 150 * (dimensions - 1) for
+                    dimensions in range(1, 11)}
+dimensions = [f'{str(number)} кв.м. - {dimensions_price[str(number)]} руб'
+              for number in range(1, 11)]
+period_12_months = [
+    '1 месяц',
+    '2 месяца',
+    '3 месяца',
+    '4 месяца',
+    '5 месяцев',
+    '6 месяцев',
+    '7 месяц',
+    '8 месяца',
+    '9 месяца',
+    '10 месяца',
+    '11 месяцев',
+    '12 месяцев',
+]
 
 
 # Button text for the 'Сезонные вещи' category
@@ -51,16 +67,25 @@ more_or_less_month = [
     'От одного месяца',
 ]
 
-period_3_weeks = [str(week) for week in range(1, 4)]
-period_6_months = [str(month) for month in range(1, 7)]
+period_3_weeks = [
+    '1 неделя',
+    '2 недели',
+    '3 недели',
+]
+period_6_months = [
+    '1 месяц',
+    '2 месяца',
+    '3 месяца',
+    '4 месяца',
+    '5 месяцев',
+    '6 месяцев',
+]
 
 # 'Сезонные вещи' price
-
 price = {
     'Лыжи': '1 лыжи - 100 р/неделя или 300 р/мес',
     'Сноуборд': '1 сноуборд - 100 р/неделя или 300 р/мес',
     'Колеса': '4 колеса - 200 р/мес',
     'Велосипед': '1 велосипед - 150 р/ неделя или 400 р/мес',
 }
-
 
