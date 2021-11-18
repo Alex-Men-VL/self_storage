@@ -12,25 +12,49 @@ import telegram.error
 
 from self_storage.settings import TELEGRAM_TOKEN, DEBUG
 from tgbot.handlers.common import handlers as common_handlers
-from tgbot.handlers.rent_common import handlers as rent_common_handlers
+from tgbot.handlers.rent import handlers as rent_handlers
 
 
 rent_handler = ConversationHandler(
     entry_points=[RegexHandler('^(Выбрать адрес склада)$',
-                               rent_common_handlers.send_message_with_addresses,
+                               rent_handlers.send_message_with_addresses,
                                pass_user_data=True)],
     states={
-        rent_common_handlers.ADDRESS: [
+        rent_handlers.ADDRESS: [
             MessageHandler(Filters.text & ~Filters.command,
-                           rent_common_handlers.get_store_address)
+                           rent_handlers.get_store_address)
         ],
-        rent_common_handlers.CATEGORY: [
+        rent_handlers.CATEGORY: [
             MessageHandler(Filters.text & ~Filters.command,
-                           rent_common_handlers.get_category)
-        ]
+                           rent_handlers.get_category)
+        ],
+        rent_handlers.OTHER: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_dimension)
+        ],
+        rent_handlers.PERIOD: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_period)
+        ],
+        rent_handlers.SEASONAL: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_stuff_category)
+        ],
+        rent_handlers.COUNT: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_stuff_count)
+        ],
+        rent_handlers.PERIOD1: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_period_name)
+        ],
+        rent_handlers.PERIOD2: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_period_count)
+        ],
     },
     fallbacks=[
-        CommandHandler('done', rent_common_handlers.done)
+        CommandHandler('done', rent_handlers.done)
     ]
 
 )
