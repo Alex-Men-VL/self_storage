@@ -172,7 +172,7 @@ def get_period_count(update: Update, rent_description):
 
 def send_message_with_pd(update: Update, _):
     user = StorageUser.objects.get(telegram_id=update.message.from_user.id)
-    if user.first_name:
+    if user.there_is_pd:
         text = static_text.personal_data_from_bd.format(
             last_name=user.last_name,
             first_name=user.first_name,
@@ -278,6 +278,8 @@ def update_data_in_database(user_pd):
 
     day, month, year = map(int, user_pd.bot_data['birth_date'].split('.'))
     user.birth_date = date(year, month, day)
+
+    user.there_is_pd = True
 
     user.save()
 

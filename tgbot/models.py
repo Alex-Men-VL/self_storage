@@ -8,41 +8,54 @@ class StorageUser(models.Model):
         max_length=64,
         null=True,
         blank=False,
-        verbose_name='Имя пользователя')
+        verbose_name='Имя пользователя'
+    )
     first_name = models.CharField(
         max_length=256,
         null=True,
         blank=False,
-        verbose_name='Имя')
+        verbose_name='Имя'
+    )
     middle_name = models.CharField(
         max_length=256,
         null=True,
         blank=True,
-        verbose_name='Отчество')
+        verbose_name='Отчество'
+    )
     last_name = models.CharField(
         max_length=256,
         null=True,
         blank=True,
-        verbose_name='Фамилия')
+        verbose_name='Фамилия'
+    )
     birth_date = models.DateField(
         null=True,
         blank=True,
-        verbose_name='Дата рождения')
+        verbose_name='Дата рождения'
+    )
     phone_number = models.CharField(
         max_length=20,
         null=True,
         blank=True,
-        verbose_name='Телефон (+код xxx xxx-xx-xx)')
+        verbose_name='Телефон (+код xxx xxx-xx-xx)'
+    )
     DUL_series = models.CharField(
         max_length=4,
         null=True,
         blank=True,
-        verbose_name='Серия паспорта')
+        verbose_name='Серия паспорта'
+    )
     DUL_number = models.CharField(
         max_length=6,
         null=True,
         blank=True,
-        verbose_name='Номер паспорта')
+        verbose_name='Номер паспорта'
+    )
+    there_is_pd = models.BooleanField(
+        null=False,
+        default=False,
+        verbose_name='Есть ли личные данные'
+    )
 
     def __str__(self):
         if self.username:
@@ -92,19 +105,23 @@ class StoredThing(models.Model):
         null=True,
         blank=False,
         unique=True,
-        verbose_name='Название вещи')
+        verbose_name='Название вещи'
+    )
     seasonal = models.BooleanField(
         null=False,
         default=False,
-        verbose_name='Сезонная вещь')
+        verbose_name='Сезонная вещь'
+    )
     tariff1 = models.IntegerField(
         null=False,
         default=0,
-        verbose_name='Цена хранения за неделю/Первый кв. метр')
+        verbose_name='Цена хранения за неделю/Первый кв. метр'
+    )
     tariff2 = models.IntegerField(
         null=False,
         default=0,
-        verbose_name='Цена хранения за месяц/Дельта за следующие кв. метры')
+        verbose_name='Цена хранения за месяц/Дельта за следующие кв. метры'
+    )
     from_month = models.BooleanField(
         null=False,
         default=False,
