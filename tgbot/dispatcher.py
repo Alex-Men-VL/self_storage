@@ -4,7 +4,7 @@ from typing import Dict
 
 from telegram import Bot, Update, BotCommand
 from telegram.ext import (
-    Updater, Dispatcher, Filters,
+    ConversationHandler, RegexHandler, Updater, Dispatcher, Filters,
     CommandHandler, MessageHandler,
     CallbackQueryHandler,
 )
@@ -12,9 +12,33 @@ import telegram.error
 
 from self_storage.settings import TELEGRAM_TOKEN, DEBUG
 from tgbot.handlers.common import handlers as common_handlers
+from tgbot.handlers.rent_common import handlers as rent_common_handlers
+
+
+rent_handler = ConversationHandler(
+    entry_points=[RegexHandler('^(Выбрать адрес склада)$',
+                               rent_common_handlers.send_message_with_addresses,
+                               pass_user_data=True)],
+    states={
+        rent_common_handlers.ADDRESS: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_common_handlers.get_store_address)
+        ],
+        rent_common_handlers.CATEGORY: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_common_handlers.get_category)
+        ]
+    },
+    fallbacks=[
+        CommandHandler('done', rent_common_handlers.done)
+    ]
+
+)
 
 
 def setup_dispatcher(dp):
+    dp.add_handler(rent_handler)
+
     dp.add_handler(CommandHandler("start", common_handlers.command_start))
     return dp
 
@@ -50,9 +74,11 @@ def set_up_commands(bot_instance: Bot) -> None:
     langs_with_commands: Dict[str, Dict[str, str]] = {
         'en': {
             'start': 'Start django bot 🚀',
+            'done': 'Get info',
         },
         'ru': {
             'start': 'Запустить django бота 🚀',
+            'done': 'Получить инфу',
         }
     }
 

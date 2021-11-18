@@ -1,6 +1,6 @@
 from telegram import ReplyKeyboardMarkup, KeyboardButton
 
-from .static_text import addresses
+from .static_text import start_button_text
 
 
 def build_menu(buttons, n_cols,
@@ -15,10 +15,10 @@ def build_menu(buttons, n_cols,
 
 
 def make_keyboard_for_start_command() -> ReplyKeyboardMarkup:
-    buttons = [KeyboardButton(address) for address in addresses]
+    button = [[KeyboardButton(start_button_text)]]
 
     reply_markup = ReplyKeyboardMarkup(
-        build_menu(buttons, n_cols=2),
+        button,
         resize_keyboard=True,
         one_time_keyboard=True
     )
