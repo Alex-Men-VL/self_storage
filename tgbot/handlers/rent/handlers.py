@@ -1,4 +1,6 @@
-from telegram import ParseMode, Update
+from datetime import date
+
+from telegram import ParseMode, Update, ReplyKeyboardRemove
 from telegram.ext import ConversationHandler
 
 from tgbot.models import StorageUser
@@ -13,7 +15,8 @@ from .keyboard_utils import (
     make_keyboard_with_stuff_period_1,
     make_keyboard_with_stuff_period_2_weeks,
     make_keyboard_with_stuff_period_2_months,
-    make_keyboard_with_skip_button,
+    make_keyboard_with_skip_change_pd,
+    make_keyboard_to_get_contact,
 )
 
 (ADDRESS,
@@ -24,10 +27,13 @@ from .keyboard_utils import (
  COUNT,
  PERIOD1,
  PERIOD2,
+ PD,
+ SELECT_PD,
  FIO,
  PHONE,
  DUL,
- BIRTHDATE) = range(12)
+ BIRTHDATE,
+ FINISH) = range(15)
 
 
 def send_message_with_addresses(update: Update, _):
@@ -75,7 +81,9 @@ def get_category(update: Update, rent_description):
 
 def get_dimension(update: Update, rent_description):
     dimensions = update.message.text
-    rent_description.bot_data['dimensions'] = dimensions.split(' - ')[0].split()
+    rent_description.bot_data[
+        'dimensions'
+    ] = dimensions.split(' - ')[0].split()[0]
 
     text = static_text.choose_period_months_12
     update.message.reply_text(
@@ -94,7 +102,7 @@ def get_period(update: Update, rent_description):
         text,
         reply_markup=make_keyboard_with_confirmation()
     )
-    return FIO
+    return PD
 
 
 '''Конец ветки другое'''
@@ -147,19 +155,131 @@ def get_period_name(update: Update, rent_description):
 
 def get_period_count(update: Update, rent_description):
     period_count = update.message.text
-    rent_description.bot_data['period_count'] = period_count
+    rent_description.bot_data['period_count'] = period_count.split()[0]
 
     text = static_text.order_confirmation
     update.message.reply_text(
         text,
         reply_markup=make_keyboard_with_confirmation()
     )
-    return FIO
+    return PD
 
 
-'''Конец сезонные вещи другое'''
+'''Конец ветки сезонные вещи'''
 
 ''' Начало сценария после нажатия кнопки Забронировать'''
+
+
+def send_message_with_pd(update: Update, _):
+    user = StorageUser.objects.get(telegram_id=update.message.from_user.id)
+    if user.first_name:
+        text = static_text.personal_data_from_bd.format(
+            last_name=user.last_name,
+            first_name=user.first_name,
+            middle_name=user.middle_name,
+            phone_number=user.phone_number,
+            dul_s=user.DUL_series,
+            dul_n=user.DUL_number,
+            birthdate=user.birth_date
+        )
+        update.message.reply_text(
+            text=text,
+            reply_markup=make_keyboard_with_skip_change_pd()
+        )
+        return SELECT_PD
+    else:
+        text = static_text.requests_fio
+        update.message.reply_text(
+            text=text
+        )
+        return FIO
+
+
+def get_action_with_pd(update: Update, _):
+    if update.message.text == static_text.skip_change_pd[0]:
+        return FINISH
+    else:
+        text = static_text.requests_fio
+        update.message.reply_text(
+            text=text
+        )
+        return FIO
+
+
+def get_fio(update: Update, user_pd):
+    # TODO: Проверка на валидность
+    fio = update.message.text
+    first_name, middle_name, last_name = fio.split()
+    user_pd.bot_data['first_name'] = first_name
+    user_pd.bot_data['middle_name'] = middle_name
+    user_pd.bot_data['last_name'] = last_name
+
+    text = static_text.request_contact
+    update.message.reply_text(
+        text=text,
+        reply_markup=make_keyboard_to_get_contact()
+    )
+    return PHONE
+
+
+def get_contact(update: Update, user_pd):
+    # TODO: Проверка на валидность
+    try:
+        phone_number = update.message.contact.phone_number
+    except AttributeError:
+        phone_number = update.message.text
+    user_pd.bot_data['phone_number'] = phone_number
+
+    text = static_text.requests_dul
+    update.message.reply_text(
+        text=text,
+        reply_markup=ReplyKeyboardRemove()
+    )
+    return DUL
+
+
+def get_dul(update: Update, user_pd):
+    # TODO: Проверка на валидность
+    dul = update.message.text
+    user_pd.bot_data['dul'] = dul
+
+    text = static_text.requests_dirthdate
+    update.message.reply_text(
+        text=text
+    )
+    return BIRTHDATE
+
+
+def get_birthdate(update: Update, user_pd):
+    # TODO: Проверка на валидность
+    birth_date = update.message.text
+    user_pd.bot_data['birth_date'] = birth_date
+    user_pd.bot_data['telegram_id'] = update.message.from_user.id
+
+    update_data_in_database(user_pd)
+
+    text = static_text.requests_dirthdate
+    update.message.reply_text(
+        text=text
+    )
+    return FINISH
+
+
+def update_data_in_database(user_pd):
+    user = StorageUser.objects.get(telegram_id=user_pd.bot_data['telegram_id'])
+    user.first_name = user_pd.bot_data['first_name']
+    user.middle_name = user_pd.bot_data['middle_name']
+    user.last_name = user_pd.bot_data['last_name']
+    user.phone_number = user_pd.bot_data['phone_number']  # TODO: привести номер к стандартному виду
+
+    dul = user_pd.bot_data['dul'].split()
+    user.DUL_series = dul[0]
+    user.DUL_number = dul[1]
+
+    day, month, year = map(int, user_pd.bot_data['birth_date'].split('.'))
+    user.birth_date = date(year, month, day)
+
+    user.save()
 
 
 '''Конец сценария'''

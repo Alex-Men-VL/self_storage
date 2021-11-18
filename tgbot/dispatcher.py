@@ -52,6 +52,32 @@ rent_handler = ConversationHandler(
             MessageHandler(Filters.text & ~Filters.command,
                            rent_handlers.get_period_count)
         ],
+        rent_handlers.PD: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.send_message_with_pd)
+        ],
+        rent_handlers.SELECT_PD: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_action_with_pd)
+        ],
+        rent_handlers.FIO: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_fio)
+        ],
+        rent_handlers.PHONE: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_contact),
+            MessageHandler(Filters.contact & ~Filters.command,
+                           rent_handlers.get_contact)
+        ],
+        rent_handlers.DUL: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_dul)
+        ],
+        rent_handlers.BIRTHDATE: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_birthdate)
+        ],
     },
     fallbacks=[
         CommandHandler('done', rent_handlers.done)

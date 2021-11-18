@@ -10,7 +10,8 @@ from .static_text import (
     more_or_less_month,
     period_3_weeks,
     period_6_months,
-    skip_step,
+    skip_change_pd,
+    request_contact_button,
 )
 
 
@@ -126,12 +127,24 @@ def make_keyboard_with_stuff_period_2_months() -> ReplyKeyboardMarkup:
     return reply_markup
 
 
-def make_keyboard_with_skip_button() -> ReplyKeyboardMarkup:
-    buttons = [KeyboardButton(month) for month in skip_step]
+def make_keyboard_with_skip_change_pd() -> ReplyKeyboardMarkup:
+    buttons = [KeyboardButton(month) for month in skip_change_pd]
+
+    reply_markup = ReplyKeyboardMarkup(
+        build_menu(buttons, n_cols=2),
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
+    return reply_markup
+
+
+def make_keyboard_to_get_contact() -> ReplyKeyboardMarkup:
+    buttons = [KeyboardButton(button, request_contact=True) for button in
+               request_contact_button]
 
     reply_markup = ReplyKeyboardMarkup(
         build_menu(buttons, n_cols=1),
         resize_keyboard=True,
-        one_time_keyboard=True
+        one_time_keyboard=True,
     )
     return reply_markup

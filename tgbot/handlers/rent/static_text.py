@@ -1,12 +1,25 @@
 # Message text common
 choose_address = 'Выберите адрес склада'
 choose_category = 'Что хотите хранить?'
-order_confirmation = 'Чтобы подтвердить заказ, нажмите на кнопку внизу экрана.'
+order_confirmation = 'Чтобы подтвердить заказ, нажмите на кнопку Забронировать.'
+
+requests_fio = 'Введите ваше ФИО'
+request_contact = 'Введите номер телефона или нажмите на кнопку в ' \
+                  'нижнем меню для автоматического определения номер.'
+requests_dul = 'Введите серию и номер паспорта'
+requests_dirthdate = 'Введите дату рождения в формате день.месяц.год'
+
+personal_data_from_bd = '''Ваши личные данные:
+ФИО: {last_name} {first_name} {middle_name}
+Номер телефона: {phone_number}
+Серия и номер паспорта: {dul_s} {dul_n}
+Дата рождения: {birthdate}
+
+Чтобы подтвердить или изменить данные, нажмите на кнопку внизу экрана.'''
 
 # Text for the 'Другое' category
-choose_dimensions = '''Выберите габаритность ячейки (от 1 кв.м. до 10 кв.м.).
-Стоимость 1 кв.м. составляет 599 руб, далее +150 руб за каждый кв.м. в месяц.'''
-choose_period_months_12 = 'Выберите период хранения (от 1 мес. до 12 мес.)'
+choose_dimensions = 'Выберите габаритность ячейки.'
+choose_period_months_12 = 'Выберите период хранения.'
 
 # Text for the 'Сезонные вещи' category
 choose_stuff_category = 'Выберите категорию вещей для хранения.'
@@ -33,8 +46,17 @@ reserve = [
     'Забронировать'
 ]
 
+request_contact_button = [
+    'Определить автоматически'
+]
+
+skip_change_pd = [
+    'Подтвердить',
+    'Изменить'
+]
+
 # Button text for the 'Другое' category
-dimensions_price = {str(dimensions): 590 + 150 * (dimensions - 1) for
+dimensions_price = {str(dimensions): 599 + 150 * (dimensions - 1) for
                     dimensions in range(1, 11)}
 dimensions = [f'{str(number)} кв.м. - {dimensions_price[str(number)]} руб'
               for number in range(1, 11)]
