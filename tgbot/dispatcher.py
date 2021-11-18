@@ -16,9 +16,10 @@ from tgbot.handlers.rent import handlers as rent_handlers
 
 
 rent_handler = ConversationHandler(
-    entry_points=[RegexHandler('^(Выбрать адрес склада)$',
-                               rent_handlers.send_message_with_addresses,
-                               pass_user_data=True)],
+    entry_points=[
+        MessageHandler(Filters.regex('^(Выбрать адрес склада)$'),
+                       rent_handlers.send_message_with_addresses)
+    ],
     states={
         rent_handlers.ADDRESS: [
             MessageHandler(Filters.text & ~Filters.command,
