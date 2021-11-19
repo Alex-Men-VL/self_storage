@@ -1,3 +1,11 @@
+import os
+
+import django
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'self_storage.settings')
+django.setup()
+
+
 from tgbot.models import StoredThing, Storage
 
 
@@ -39,3 +47,7 @@ def init():
     print(f'{thing}: {StoredThing.objects.get(thing_name=thing).get_storage_cost(3, True, 1)}')
     thing = 'Другое'
     print(f'{thing}: {StoredThing.objects.get(thing_name=thing).get_storage_cost(3, True, 2)}')
+
+
+if __name__ == '__main__':
+    init()

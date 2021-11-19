@@ -235,7 +235,7 @@ class Orders(models.Model):
     @staticmethod
     def get_order_num(order_id, user):
         return f'{order_id}-{user.telegram_id}-' \
-               f'{timezone.now().strftime("%Y%m%d")}'
+               f'{timezone.now().strftime("%Y%m%d - %H%M%S")}'
 
     def create_qr_code(self):
         data = self.get_order_num()
