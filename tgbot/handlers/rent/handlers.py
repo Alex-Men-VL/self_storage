@@ -1,5 +1,6 @@
 from datetime import date
 
+import phonenumbers
 from telegram import ParseMode, Update, ReplyKeyboardRemove
 from telegram.ext import ConversationHandler
 
@@ -95,7 +96,8 @@ def get_dimension(update: Update, rent_description):
 
 def get_period(update: Update, rent_description):
     period = update.message.text
-    rent_description.bot_data['period'] = period
+    rent_description.bot_data['period_name'] = 'месяц'
+    rent_description.bot_data['period_count'] = period
 
     text = static_text.order_confirmation
     update.message.reply_text(
@@ -207,9 +209,17 @@ def get_action_with_pd(update: Update, _):
 
 
 def get_fio(update: Update, user_pd):
-    # TODO: Проверка на валидность
     fio = update.message.text
-    first_name, middle_name, last_name = fio.split()
+    try:
+        last_name, first_name, middle_name = map(
+            lambda x: x.title(), fio.split()
+        )
+    except ValueError:
+        text = static_text.requests_fio_again
+        update.message.reply_text(
+            text=text
+        )
+        return FIO
     user_pd.bot_data['first_name'] = first_name
     user_pd.bot_data['middle_name'] = middle_name
     user_pd.bot_data['last_name'] = last_name
@@ -228,7 +238,28 @@ def get_contact(update: Update, user_pd):
         phone_number = update.message.contact.phone_number
     except AttributeError:
         phone_number = update.message.text
-    user_pd.bot_data['phone_number'] = phone_number
+    phonenumber = phone_number.replace('+', '').replace('-', '')
+    if not phonenumber.isdigit() or len(phonenumber) < 11:
+        text = static_text.request_contact
+        update.message.reply_text(
+            text=text,
+            reply_markup=make_keyboard_to_get_contact()
+        )
+        return PHONE
+    pure_phonenumber = phonenumbers.parse(phonenumber, 'RU')
+    if phonenumbers.is_valid_number(pure_phonenumber):
+        normalize_phonenumber = phonenumbers.format_number(
+            pure_phonenumber,
+            phonenumbers.PhoneNumberFormat.E164
+        )
+        user_pd.bot_data['phone_number'] = normalize_phonenumber
+    else:
+        text = static_text.request_contact
+        update.message.reply_text(
+            text=text,
+            reply_markup=make_keyboard_to_get_contact()
+        )
+        return PHONE
 
     text = static_text.requests_dul
     update.message.reply_text(
@@ -257,11 +288,6 @@ def get_birthdate(update: Update, user_pd):
     user_pd.bot_data['telegram_id'] = update.message.from_user.id
 
     update_data_in_database(user_pd)
-
-    text = static_text.requests_dirthdate
-    update.message.reply_text(
-        text=text
-    )
     return FINISH
 
 
@@ -270,7 +296,7 @@ def update_data_in_database(user_pd):
     user.first_name = user_pd.bot_data['first_name']
     user.middle_name = user_pd.bot_data['middle_name']
     user.last_name = user_pd.bot_data['last_name']
-    user.phone_number = user_pd.bot_data['phone_number']  # TODO: привести номер к стандартному виду
+    user.phone_number = user_pd.bot_data['phone_number']
 
     dul = user_pd.bot_data['dul'].split()
     user.DUL_series = dul[0]
