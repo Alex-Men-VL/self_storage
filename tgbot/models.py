@@ -266,6 +266,7 @@ class Orders(models.Model):
             user=user,
             thing=thing
         )
+        new_order.seasonal_store = is_seasonal
         new_order.store_duration = int(order_values['period_count'])
         new_order.store_duration_type = is_month
         new_order.seasonal_things_count = int(seasonal_things_count)

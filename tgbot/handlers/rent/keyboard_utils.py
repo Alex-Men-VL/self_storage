@@ -12,6 +12,7 @@ from .static_text import (
     period_6_months,
     skip_change_pd,
     request_contact_button,
+    send_invoice,
 )
 
 
@@ -94,9 +95,11 @@ def make_keyboard_with_stuff_categories() -> ReplyKeyboardMarkup:
     return reply_markup
 
 
-def make_keyboard_with_stuff_period_1() -> ReplyKeyboardMarkup:
-    buttons = [KeyboardButton(choose) for choose in more_or_less_month]
-
+def make_keyboard_with_stuff_period_1(is_wheels) -> ReplyKeyboardMarkup:
+    if is_wheels:
+        buttons = [KeyboardButton(choose) for choose in more_or_less_month[1:]]
+    else:
+        buttons = [KeyboardButton(choose) for choose in more_or_less_month]
     reply_markup = ReplyKeyboardMarkup(
         build_menu(buttons, n_cols=2),
         resize_keyboard=True,
@@ -141,6 +144,17 @@ def make_keyboard_with_skip_change_pd() -> ReplyKeyboardMarkup:
 def make_keyboard_to_get_contact() -> ReplyKeyboardMarkup:
     buttons = [KeyboardButton(button, request_contact=True) for button in
                request_contact_button]
+
+    reply_markup = ReplyKeyboardMarkup(
+        build_menu(buttons, n_cols=1),
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+    return reply_markup
+
+
+def make_keyboard_with_invoice() -> ReplyKeyboardMarkup:
+    buttons = [KeyboardButton(button) for button in send_invoice]
 
     reply_markup = ReplyKeyboardMarkup(
         build_menu(buttons, n_cols=1),

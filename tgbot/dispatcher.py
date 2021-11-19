@@ -4,7 +4,9 @@ from typing import Dict
 
 from telegram import Bot, Update, BotCommand
 from telegram.ext import (
-    ConversationHandler, RegexHandler, Updater, Dispatcher, Filters,
+    ConversationHandler, PreCheckoutQueryHandler, RegexHandler,
+    ShippingQueryHandler, Updater,
+    Dispatcher, Filters,
     CommandHandler, MessageHandler,
     CallbackQueryHandler,
 )
@@ -79,9 +81,14 @@ rent_handler = ConversationHandler(
             MessageHandler(Filters.text & ~Filters.command,
                            rent_handlers.get_birthdate)
         ],
+        rent_handlers.PAY: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.send_shipping_callback)
+        ],
     },
     fallbacks=[
-        CommandHandler('done', rent_handlers.done)
+        MessageHandler(Filters.successful_payment,
+                       rent_handlers.successful_payment_callback)
     ]
 
 )
@@ -91,6 +98,16 @@ def setup_dispatcher(dp):
     dp.add_handler(rent_handler)
 
     dp.add_handler(CommandHandler("start", common_handlers.command_start))
+
+    dp.add_handler(ShippingQueryHandler(rent_handlers.shipping_callback))
+
+    # Pre-checkout handler to final check
+    dp.add_handler(PreCheckoutQueryHandler(rent_handlers.precheckout_callback))
+
+    # Success! Notify your user!
+    # dp.add_handler(
+    #     MessageHandler(Filters.successful_payment,
+    #                    rent_handlers.successful_payment_callback))
     return dp
 
 

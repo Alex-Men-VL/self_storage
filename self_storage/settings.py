@@ -143,3 +143,5 @@ if TELEGRAM_TOKEN is None:
         'Example of .env file: https://github.com/ohld/django-telegram-bot/blob/main/.env_example'
     )
     sys.exit(1)
+
+PROVIDER_TOKEN = os.getenv('PROVIDER_TOKEN')

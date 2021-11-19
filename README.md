@@ -19,7 +19,9 @@ pip install -r requirements.txt
 DJANGO_DEBUG=True
 DATABASE_URL=sqlite:///db.sqlite3
 TELEGRAM_TOKEN=<Токен вашего бота>
+PROVIDER_TOKEN=<Токен счета вашего бота>
 ```
+[Как получить PROVIDER_TOKEN](https://yookassa.ru/docs/support/payments/onboarding/integration/cms-module/telegram)
 - Запустите миграцию для настройки базы данных SQLite:
 ``` bash
 python3 manage.py migrate
@@ -31,9 +33,7 @@ python3 manage.py createsuperuser
 
 - Инициализация основных справочников:
 ``` bash
-python3 manage.py shell
->>> from dbinit import init
->>> init()
+python3 dbinit
 ```
 
 ## Запуск бота

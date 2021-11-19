@@ -1,9 +1,11 @@
 from datetime import date
 
 import phonenumbers
-from telegram import ParseMode, Update, ReplyKeyboardRemove
-from telegram.ext import ConversationHandler
+from telegram import ParseMode, ShippingOption, Update, ReplyKeyboardRemove, \
+    LabeledPrice
+from telegram.ext import CallbackContext, ConversationHandler
 
+from self_storage.settings import PROVIDER_TOKEN
 from tgbot.models import StorageUser, Orders
 from tgbot.handlers.rent import static_text
 from .keyboard_utils import (
@@ -18,6 +20,7 @@ from .keyboard_utils import (
     make_keyboard_with_stuff_period_2_months,
     make_keyboard_with_skip_change_pd,
     make_keyboard_to_get_contact,
+    make_keyboard_with_invoice,
 )
 
 (ADDRESS,
@@ -34,7 +37,7 @@ from .keyboard_utils import (
  PHONE,
  DUL,
  BIRTHDATE,
- FINISH) = range(15)
+ PAY) = range(15)
 
 
 def send_message_with_addresses(update: Update, _):
@@ -128,12 +131,24 @@ def get_stuff_category(update: Update, rent_description):
 
 def get_stuff_count(update: Update, rent_description):
     stuff_count = update.message.text
-    rent_description.bot_data['stuff_count'] = stuff_count
+    stuff_category = rent_description.bot_data['stuff_category']
+    is_wheels = (stuff_category == 'Колеса')
+    if is_wheels and int(stuff_count) % 4 != 0:
+        text = static_text.choose_stuff_count_error_wheels
+        update.message.reply_text(
+            text
+        )
+        return COUNT
+
+    if is_wheels:
+        rent_description.bot_data['stuff_count'] = str(int(stuff_count) // 4)
+    else:
+        rent_description.bot_data['stuff_count'] = stuff_count
 
     text = static_text.choose_more_or_less_month
     update.message.reply_text(
         text,
-        reply_markup=make_keyboard_with_stuff_period_1()
+        reply_markup=make_keyboard_with_stuff_period_1(is_wheels)
     )
     return PERIOD1
 
@@ -170,7 +185,7 @@ def get_period_count(update: Update, rent_description):
 
 '''Конец ветки сезонные вещи'''
 
-''' Начало сценария после нажатия кнопки Забронировать'''
+''' Начало сценария после нажатия кнопки Забронировать. Ввод личных данных'''
 
 
 def send_message_with_pd(update: Update, _):
@@ -200,7 +215,10 @@ def send_message_with_pd(update: Update, _):
 
 def get_action_with_pd(update: Update, _):
     if update.message.text == static_text.skip_change_pd[0]:
-        return FINISH
+        text = 'Перейти к оплате'
+        update.message.reply_text(text=text,
+                                  reply_markup=make_keyboard_with_invoice())
+        return PAY
     else:
         text = static_text.requests_fio
         update.message.reply_text(
@@ -312,7 +330,12 @@ def get_birthdate(update: Update, user_pd):
     user_pd.bot_data['telegram_id'] = update.message.from_user.id
 
     update_data_in_database(user_pd)
-    return FINISH
+
+    text = 'Перейти к оплате'
+    update.message.reply_text(text=text,
+                              reply_markup=make_keyboard_with_invoice)
+
+    return PAY
 
 
 def update_data_in_database(user_pd):
@@ -340,7 +363,70 @@ def update_data_in_database(user_pd):
 '''Конец сценария'''
 
 
-def done(update: Update, rent_description):
-    print(Orders.save_order(rent_description.bot_data))
+'''Сценарий оплаты'''
+
+
+def send_shipping_callback(update: Update, context: CallbackContext):
+    chat_id = update.message.chat_id
+    title = static_text.pay_title
+
+    period_count = context.bot_data['period_count']
+    period_name = context.bot_data['period_name']
+    correct_period = static_text.correct_names[f'{period_count} {period_name}']
+    description = static_text.pay_description.format(
+        correct_period=correct_period
+    )
+    # select a payload just for you to recognize its the donation from your bot
+    payload = static_text.pay_payload
+    # In order to get a provider_token see https://core.telegram.org/bots/payments#getting-a-token
+    provider_token = PROVIDER_TOKEN
+    currency = static_text.pay_currency
+
+    price = 100
+
+    prices = [LabeledPrice("Test", price * 100)]
+
+    # optionally pass need_name=True, need_phone_number=True,
+    # need_email=True, need_shipping_address=True, is_flexible=True
+    context.bot.send_invoice(
+        chat_id, title, description, payload, provider_token, currency, prices
+    )
+
+
+def shipping_callback(update: Update, context: CallbackContext) -> None:
+    """Answers the ShippingQuery with ShippingOptions"""
+    query = update.shipping_query
+    # check the payload, is this from your bot?
+    if query.invoice_payload != static_text.pay_payload:
+        # answer False pre_checkout_query
+        query.answer(ok=False, error_message=static_text.pay_error)
+        return
+
+
+# after (optional) shipping, it's the pre-checkout
+def precheckout_callback(update: Update, context: CallbackContext) -> None:
+    """Answers the PreQecheckoutQuery"""
+    query = update.pre_checkout_query
+    # check the payload, is this from your bot?
+    if query.invoice_payload != static_text.pay_payload:
+        # answer False pre_checkout_query
+        query.answer(ok=False, error_message=static_text.pay_error)
+    else:
+        query.answer(ok=True)
+
+
+# finally, after contacting the payment provider...
+def successful_payment_callback(update: Update, rent_description: CallbackContext) -> None:
+    """Confirms the successful payment."""
+    # do something after successfully receiving payment?
+    Orders.save_order(rent_description.bot_data)
     print(rent_description.bot_data)
+    update.message.reply_text(static_text.pay_success)
     return ConversationHandler.END
+
+
+'''Конец сценария оплаты'''
+
+
+# def done(update: Update, rent_description):
+
