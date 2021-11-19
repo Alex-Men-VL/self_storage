@@ -1,3 +1,5 @@
 Django==3.2.9
 python-dotenv==0.19.2
 python-telegram-bot==13.8.1
+
+qrcode~=7.3.1
