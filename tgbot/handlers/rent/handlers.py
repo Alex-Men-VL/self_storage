@@ -4,7 +4,7 @@ import phonenumbers
 from telegram import ParseMode, Update, ReplyKeyboardRemove
 from telegram.ext import ConversationHandler
 
-from tgbot.models import StorageUser
+from tgbot.models import StorageUser, Orders
 from tgbot.handlers.rent import static_text
 from .keyboard_utils import (
     make_keyboard_with_addresses,
@@ -49,6 +49,7 @@ def send_message_with_addresses(update: Update, _):
 def get_store_address(update: Update, rent_description):
     address = update.message.text
     rent_description.bot_data['address'] = address
+    rent_description.bot_data['user_telegram_id'] = update.message.from_user.id
 
     text = static_text.choose_category
     update.message.reply_text(
@@ -97,7 +98,7 @@ def get_dimension(update: Update, rent_description):
 def get_period(update: Update, rent_description):
     period = update.message.text
     rent_description.bot_data['period_name'] = 'месяц'
-    rent_description.bot_data['period_count'] = period
+    rent_description.bot_data['period_count'] = period.split(' ')[0]
 
     text = static_text.order_confirmation
     update.message.reply_text(
@@ -314,5 +315,6 @@ def update_data_in_database(user_pd):
 
 
 def done(update: Update, rent_description):
+    print(Orders.save_order(rent_description.bot_data))
     print(rent_description.bot_data)
     return ConversationHandler.END
