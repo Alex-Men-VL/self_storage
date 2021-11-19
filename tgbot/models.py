@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+import qrcode
 
 
 class StorageUser(models.Model):
@@ -170,6 +171,9 @@ class StoredThing(models.Model):
         verbose_name_plural = 'Хранимые вещи'
 
 
+PERIOD_TYPE = [('0', 'неделя'), ('1', 'месяц')]
+
+
 class Orders(models.Model):
     """
     Справочник заказов
@@ -194,7 +198,7 @@ class Orders(models.Model):
     user = models.ForeignKey(
         StorageUser,
         on_delete=models.CASCADE,
-        related_name='users',
+        related_name='orders',
         verbose_name='Пользователь')
     seasonal_store = models.BooleanField(
         null=False,
@@ -203,7 +207,7 @@ class Orders(models.Model):
     thing = models.ForeignKey(
         StoredThing,
         on_delete=models.CASCADE,
-        related_name='things',
+        related_name='orders',
         verbose_name='Хранимая вещь')
     other_type_size = models.IntegerField(
         null=True,
@@ -215,19 +219,65 @@ class Orders(models.Model):
     store_duration = models.IntegerField(
         null=True,
         verbose_name='Длительность хранения')
+    store_duration_type = models.CharField(
+        max_length=1,
+        choices=PERIOD_TYPE,
+        default='0',
+        verbose_name='Единица длительности хранения')
     summa = models.FloatField(
         null=False,
         default=0,
         verbose_name='Стоимость хранения')
-    qr_code = models.BinaryField(
-        max_length=8192,
-        null=True,
-        verbose_name='QR-код')
 
     def __str__(self):
-        return f'{self.id}-' \
-               f'{self.user}-' \
-               f'{timezone.now().strftime("%Y-%m-%d")}'
+        return self.get_order_num(self.id, self.user)
+
+    @staticmethod
+    def get_order_num(order_id, user):
+        return f'{order_id}-{user.telegram_id}-' \
+               f'{timezone.now().strftime("%Y%m%d")}'
+
+    def create_qr_code(self):
+        data = self.get_order_num()
+        filename = f'{data}.png'
+        qrcode.make(data).save(filename)
+        return filename
+
+    @classmethod
+    def save_order(cls, order_values):
+        seasonal_things_count = 0
+        other_type_size = 0
+        is_month = '1' if order_values['period_name'] == 'месяц' else '0'
+        is_seasonal = True if order_values['category'] == 'Сезонные вещи' else \
+            False
+
+        if is_seasonal:
+            thing = StoredThing.objects.get(thing_name=order_values['stuff_category'])
+            seasonal_things_count = int(order_values['stuff_count'])
+        else:
+            thing = StoredThing.objects.get(thing_name=order_values['category'])
+            other_type_size = int(order_values['dimensions'])
+
+        user = StorageUser.objects.get(telegram_id=order_values['user_telegram_id'])
+
+        new_order = Orders(
+            order_num=Orders.get_order_num(1, user),
+            storage=Storage.objects.get(storage_name=order_values['address']),
+            user=user,
+            thing=thing
+        )
+        new_order.store_duration = int(order_values['period_count'])
+        new_order.store_duration_type = is_month
+        new_order.seasonal_things_count = int(seasonal_things_count)
+        new_order.other_type_size = int(other_type_size)
+        new_order.save()
+        new_order.order_num = Orders.get_order_num(new_order.id, user)
+        new_order.summa = thing.get_storage_cost(
+            int(order_values['period_count']),
+            True if is_month == '1' else False,
+            new_order.seasonal_things_count if is_seasonal else new_order.other_type_size
+        )
+        new_order.save()
 
     class Meta:
         verbose_name = 'Заказ'
