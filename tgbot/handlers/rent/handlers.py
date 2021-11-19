@@ -234,7 +234,6 @@ def get_fio(update: Update, user_pd):
 
 
 def get_contact(update: Update, user_pd):
-    # TODO: Проверка на валидность
     try:
         phone_number = update.message.contact.phone_number
     except AttributeError:
@@ -271,9 +270,21 @@ def get_contact(update: Update, user_pd):
 
 
 def get_dul(update: Update, user_pd):
-    # TODO: Проверка на валидность
     dul = update.message.text
-    user_pd.bot_data['dul'] = dul
+    try:
+        dul_series, dul_number = dul.split()
+        if len(dul_series) != 4 and len(dul_number) != 6:
+            raise ValueError
+    except ValueError:
+        text = static_text.requests_dul
+        update.message.reply_text(
+            text=text,
+            reply_markup=ReplyKeyboardRemove()
+        )
+        return DUL
+
+    user_pd.bot_data['dul_series'] = dul_series
+    user_pd.bot_data['dul_number'] = dul_number
 
     text = static_text.requests_dirthdate
     update.message.reply_text(
@@ -283,9 +294,21 @@ def get_dul(update: Update, user_pd):
 
 
 def get_birthdate(update: Update, user_pd):
-    # TODO: Проверка на валидность
     birth_date = update.message.text
-    user_pd.bot_data['birth_date'] = birth_date
+    birth_date.replace(',', '.')
+    try:
+        day, month, year = birth_date.split('.')
+        if len(day) > 2 or len(month) > 2 or len(year) != 4:
+            raise ValueError
+    except ValueError:
+        text = static_text.requests_dirthdate
+        update.message.reply_text(
+            text=text
+        )
+        return BIRTHDATE
+    user_pd.bot_data['birth_date_day'] = day
+    user_pd.bot_data['birth_date_month'] = month
+    user_pd.bot_data['birth_date_year'] = year
     user_pd.bot_data['telegram_id'] = update.message.from_user.id
 
     update_data_in_database(user_pd)
@@ -299,11 +322,14 @@ def update_data_in_database(user_pd):
     user.last_name = user_pd.bot_data['last_name']
     user.phone_number = user_pd.bot_data['phone_number']
 
-    dul = user_pd.bot_data['dul'].split()
-    user.DUL_series = dul[0]
-    user.DUL_number = dul[1]
+    user.DUL_series = user_pd.bot_data['dul_series']
+    user.DUL_number = user_pd.bot_data['dul_number']
 
-    day, month, year = map(int, user_pd.bot_data['birth_date'].split('.'))
+    day, month, year = map(int, (
+        user_pd.bot_data['birth_date_day'],
+        user_pd.bot_data['birth_date_month'],
+        user_pd.bot_data['birth_date_year']
+    ))
     user.birth_date = date(year, month, day)
 
     user.there_is_pd = True
