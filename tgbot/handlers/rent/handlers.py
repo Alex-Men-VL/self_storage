@@ -95,7 +95,8 @@ def get_dimension(update: Update, rent_description):
 
 def get_period(update: Update, rent_description):
     period = update.message.text
-    rent_description.bot_data['period'] = period
+    rent_description.bot_data['period_name'] = 'месяц'
+    rent_description.bot_data['period_count'] = period.split(' ')[0]
 
     text = static_text.order_confirmation
     update.message.reply_text(
