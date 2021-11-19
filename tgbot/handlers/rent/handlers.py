@@ -48,6 +48,7 @@ def send_message_with_addresses(update: Update, _):
 def get_store_address(update: Update, rent_description):
     address = update.message.text
     rent_description.bot_data['address'] = address
+    rent_description.bot_data['user_telegram_id'] = update.message.from_user.id
 
     text = static_text.choose_category
     update.message.reply_text(
