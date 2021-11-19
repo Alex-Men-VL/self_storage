@@ -273,7 +273,7 @@ def get_dul(update: Update, user_pd):
     dul = update.message.text
     try:
         dul_series, dul_number = dul.split()
-        if len(dul_series) != 4 and len(dul_number) != 6:
+        if len(dul_series) != 4 or len(dul_number) != 6:
             raise ValueError
     except ValueError:
         text = static_text.requests_dul
