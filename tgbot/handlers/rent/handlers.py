@@ -3,7 +3,7 @@ from datetime import date
 from telegram import ParseMode, Update, ReplyKeyboardRemove
 from telegram.ext import ConversationHandler
 
-from tgbot.models import StorageUser
+from tgbot.models import StorageUser, Orders
 from tgbot.handlers.rent import static_text
 from .keyboard_utils import (
     make_keyboard_with_addresses,
@@ -290,5 +290,6 @@ def update_data_in_database(user_pd):
 
 
 def done(update: Update, rent_description):
+    print(Orders.save_order(rent_description.bot_data))
     print(rent_description.bot_data)
     return ConversationHandler.END
