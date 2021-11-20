@@ -171,7 +171,7 @@ def make_keyboard_with_invoice() -> ReplyKeyboardMarkup:
     buttons = [KeyboardButton(button) for button in send_invoice]
 
     reply_markup = ReplyKeyboardMarkup(
-        build_menu(buttons, n_cols=1),
+        build_menu(buttons, n_cols=2),
         resize_keyboard=True,
         one_time_keyboard=True,
     )

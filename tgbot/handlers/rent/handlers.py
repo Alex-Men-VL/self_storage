@@ -492,6 +492,13 @@ def update_data_in_database(user_pd):
 
 
 def send_shipping_callback(update: Update, context: CallbackContext):
+    if update.message.text == static_text.send_invoice[1]:
+        text = static_text.cancel_text
+        update.message.reply_text(
+            text=text,
+            reply_markup=make_keyboard_for_start_command(),
+        )
+        return ConversationHandler.END
     if update.message.text != static_text.send_invoice[0]:
         text = static_text.pay_request
         update.message.reply_text(text=text,

@@ -103,6 +103,7 @@ def setup_dispatcher(dp):
     dp.add_handler(rent_handler)
 
     dp.add_handler(CommandHandler("start", common_handlers.command_start))
+    dp.add_handler(CommandHandler("cancel", common_handlers.command_cancel))
 
     # Pre-checkout handler to final check
     dp.add_handler(PreCheckoutQueryHandler(rent_handlers.precheckout_callback))
