@@ -18,6 +18,8 @@ personal_data_from_bd = '''Ваши личные данные:
 
 Чтобы подтвердить или изменить данные, нажмите на кнопку внизу экрана.'''
 
+pay_request = 'Нажмите на кнопку внизу экрана для оплаты аренды.'
+
 pay_title = 'Аренда склада'
 pay_description = 'Оплата аренды склада на {correct_period}'
 pay_payload = 'Custom-Payload'

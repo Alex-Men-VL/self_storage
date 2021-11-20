@@ -218,7 +218,7 @@ def send_message_with_pd(update: Update, _):
 
 def get_action_with_pd(update: Update, _):
     if update.message.text == static_text.skip_change_pd[0]:
-        text = 'Перейти к оплате'
+        text = static_text.pay_request
         update.message.reply_text(text=text,
                                   reply_markup=make_keyboard_with_invoice())
         return PAY
@@ -334,7 +334,7 @@ def get_birthdate(update: Update, user_pd):
 
     update_data_in_database(user_pd)
 
-    text = 'Перейти к оплате'
+    text = static_text.pay_request
     update.message.reply_text(text=text,
                               reply_markup=make_keyboard_with_invoice())
 
@@ -386,7 +386,7 @@ def send_shipping_callback(update: Update, context: CallbackContext):
     currency = static_text.pay_currency
 
     thing = StoredThing.objects.get(
-        thing_name=context.bot_data['stuff_category'])
+        thing_name=context.bot_data['category'])
     is_month = False if context.bot_data['period_name'] == 'неделя' else True
     if context.bot_data['category'] == 'Сезонные вещи':
         things_count = context.bot_data['stuff_count']
@@ -399,7 +399,7 @@ def send_shipping_callback(update: Update, context: CallbackContext):
         things_count
     )
 
-    prices = [LabeledPrice("Цена", price * 100)]
+    prices = [LabeledPrice(currency, price * 100)]
 
     # optionally pass need_name=True, need_phone_number=True,
     # need_email=True, need_shipping_address=True, is_flexible=True
@@ -407,7 +407,7 @@ def send_shipping_callback(update: Update, context: CallbackContext):
         chat_id, title, description, payload, provider_token, currency, prices
     )
 
-
+'''
 def shipping_callback(update: Update, context: CallbackContext) -> None:
     """Answers the ShippingQuery with ShippingOptions"""
     query = update.shipping_query
@@ -415,7 +415,7 @@ def shipping_callback(update: Update, context: CallbackContext) -> None:
     if query.invoice_payload != static_text.pay_payload:
         # answer False pre_checkout_query
         query.answer(ok=False, error_message=static_text.pay_error)
-        return
+        return'''
 
 
 # after (optional) shipping, it's the pre-checkout
