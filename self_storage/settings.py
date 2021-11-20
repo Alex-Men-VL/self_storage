@@ -145,3 +145,5 @@ if TELEGRAM_TOKEN is None:
     sys.exit(1)
 
 PROVIDER_TOKEN = os.getenv('PROVIDER_TOKEN')
+CONSENT_PD_FILEPATH = os.getenv('CONSENT_PD_FILEPATH',
+                                'data/consent_personal_data.pdf')

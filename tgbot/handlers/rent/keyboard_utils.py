@@ -13,6 +13,7 @@ from .static_text import (
     skip_change_pd,
     request_contact_button,
     send_invoice,
+    consent_button,
 )
 
 
@@ -141,6 +142,18 @@ def make_keyboard_with_skip_change_pd() -> ReplyKeyboardMarkup:
     return reply_markup
 
 
+# Личные данные
+def make_keyboard_with_consent() -> ReplyKeyboardMarkup:
+    buttons = [KeyboardButton(button) for button in consent_button]
+
+    reply_markup = ReplyKeyboardMarkup(
+        build_menu(buttons, n_cols=2),
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+    return reply_markup
+
+
 def make_keyboard_to_get_contact() -> ReplyKeyboardMarkup:
     buttons = [KeyboardButton(button, request_contact=True) for button in
                request_contact_button]
@@ -153,6 +166,7 @@ def make_keyboard_to_get_contact() -> ReplyKeyboardMarkup:
     return reply_markup
 
 
+# Оплата
 def make_keyboard_with_invoice() -> ReplyKeyboardMarkup:
     buttons = [KeyboardButton(button) for button in send_invoice]
 

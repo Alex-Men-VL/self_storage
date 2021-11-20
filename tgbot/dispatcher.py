@@ -63,6 +63,10 @@ rent_handler = ConversationHandler(
             MessageHandler(Filters.text & ~Filters.command,
                            rent_handlers.get_action_with_pd)
         ],
+        rent_handlers.CONSENT: [
+            MessageHandler(Filters.text & ~Filters.command,
+                           rent_handlers.get_user_consent)
+        ],
         rent_handlers.FIO: [
             MessageHandler(Filters.text & ~Filters.command,
                            rent_handlers.get_fio)

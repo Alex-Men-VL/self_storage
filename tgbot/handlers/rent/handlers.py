@@ -1,12 +1,13 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 import os
 
 import phonenumbers
+from dateutil.relativedelta import relativedelta
 from telegram import ParseMode, ShippingOption, Update, ReplyKeyboardRemove, \
     LabeledPrice
 from telegram.ext import CallbackContext, ConversationHandler
 
-from self_storage.settings import PROVIDER_TOKEN, BASE_DIR
+from self_storage.settings import PROVIDER_TOKEN, BASE_DIR, CONSENT_PD_FILEPATH
 from tgbot.models import StorageUser, Orders, StoredThing
 from tgbot.handlers.rent import static_text
 from .keyboard_utils import (
@@ -20,6 +21,7 @@ from .keyboard_utils import (
     make_keyboard_with_stuff_period_2_weeks,
     make_keyboard_with_stuff_period_2_months,
     make_keyboard_with_skip_change_pd,
+    make_keyboard_with_consent,
     make_keyboard_to_get_contact,
     make_keyboard_with_invoice,
 )
@@ -36,11 +38,12 @@ from ..common.keyboard_utils import make_keyboard_for_start_command
  PERIOD2,
  PD,
  SELECT_PD,
+ CONSENT,
  FIO,
  PHONE,
  DUL,
  BIRTHDATE,
- PAY) = range(15)
+ PAY) = range(16)
 
 
 def send_message_with_addresses(update: Update, _):
@@ -92,6 +95,8 @@ def get_dimension(update: Update, rent_description):
     rent_description.bot_data[
         'dimensions'
     ] = dimensions.split(' - ')[0].split()[0]
+
+    rent_description.bot_data['stuff_category'] = 'Другое'
 
     text = static_text.choose_period_months_12
     update.message.reply_text(
@@ -201,7 +206,7 @@ def send_message_with_pd(update: Update, _):
             phone_number=user.phone_number,
             dul_s=user.DUL_series,
             dul_n=user.DUL_number,
-            birthdate=user.birth_date
+            birthdate=user.birth_date.strftime('%d.%m.%Y')
         )
         update.message.reply_text(
             text=text,
@@ -209,11 +214,14 @@ def send_message_with_pd(update: Update, _):
         )
         return SELECT_PD
     else:
-        text = static_text.requests_fio
-        update.message.reply_text(
-            text=text
-        )
-        return FIO
+        text = static_text.request_consent
+        with open(CONSENT_PD_FILEPATH, 'rb') as consent_file:
+            update.message.reply_document(
+                document=consent_file,
+                caption=text,
+                reply_markup=make_keyboard_with_consent()
+            )
+        return CONSENT
 
 
 def get_action_with_pd(update: Update, _):
@@ -223,11 +231,29 @@ def get_action_with_pd(update: Update, _):
                                   reply_markup=make_keyboard_with_invoice())
         return PAY
     else:
-        text = static_text.requests_fio
+        text = static_text.request_consent
+        with open(CONSENT_PD_FILEPATH, 'rb') as consent_file:
+            update.message.reply_document(
+                document=consent_file,
+                caption=text,
+                reply_markup=make_keyboard_with_consent()
+            )
+        return CONSENT
+
+
+def get_user_consent(update: Update, _):
+    if update.message.text == static_text.consent_button[1]:
+        text = static_text.request_consent_again
         update.message.reply_text(
-            text=text
+            text=text,
+            reply_markup=make_keyboard_with_consent()
         )
-        return FIO
+        return CONSENT
+    text = static_text.request_fio
+    update.message.reply_text(
+        text=text
+    )
+    return FIO
 
 
 def get_fio(update: Update, user_pd):
@@ -237,7 +263,7 @@ def get_fio(update: Update, user_pd):
             lambda x: x.title(), fio.split()
         )
     except ValueError:
-        text = static_text.requests_fio_again
+        text = static_text.request_fio_again
         update.message.reply_text(
             text=text
         )
@@ -282,7 +308,7 @@ def get_contact(update: Update, user_pd):
         )
         return PHONE
 
-    text = static_text.requests_dul
+    text = static_text.request_dul
     update.message.reply_text(
         text=text,
         reply_markup=ReplyKeyboardRemove()
@@ -297,7 +323,7 @@ def get_dul(update: Update, user_pd):
         if len(dul_series) != 4 or len(dul_number) != 6:
             raise ValueError
     except ValueError:
-        text = static_text.requests_dul
+        text = static_text.request_dul
         update.message.reply_text(
             text=text,
             reply_markup=ReplyKeyboardRemove()
@@ -307,7 +333,7 @@ def get_dul(update: Update, user_pd):
     user_pd.bot_data['dul_series'] = dul_series
     user_pd.bot_data['dul_number'] = dul_number
 
-    text = static_text.requests_dirthdate
+    text = static_text.request_dirthdate
     update.message.reply_text(
         text=text
     )
@@ -322,7 +348,7 @@ def get_birthdate(update: Update, user_pd):
         if len(day) > 2 or len(month) > 2 or len(year) != 4:
             raise ValueError
     except ValueError:
-        text = static_text.requests_dirthdate
+        text = static_text.request_dirthdate
         update.message.reply_text(
             text=text
         )
@@ -386,7 +412,7 @@ def send_shipping_callback(update: Update, context: CallbackContext):
     currency = static_text.pay_currency
 
     thing = StoredThing.objects.get(
-        thing_name=context.bot_data['category'])
+        thing_name=context.bot_data['stuff_category'])
     is_month = False if context.bot_data['period_name'] == 'неделя' else True
     if context.bot_data['category'] == 'Сезонные вещи':
         things_count = context.bot_data['stuff_count']
@@ -434,16 +460,27 @@ def precheckout_callback(update: Update, context: CallbackContext) -> None:
 def successful_payment_callback(update: Update, rent_description: CallbackContext) -> None:
     """Confirms the successful payment."""
     qr_filename = Orders.save_order(rent_description.bot_data)
+
+    update.message.reply_text(static_text.pay_success)
+    period_name = rent_description.bot_data['period_name']
+    period_count = rent_description.bot_data['period_count']
+    date_from = datetime.now()
+    if period_name == 'неделя':
+        date_to = date_from + timedelta(weeks=int(period_count))
+    else:
+        date_to = date_from + relativedelta(months=int(period_count))
+
     with open(qr_filename, 'rb') as qr_file:
-        update.message.reply_document(document=qr_file)
+        caption = static_text.qr_caption.format(
+            date_from=date_from.strftime('%d.%m.%Y'),
+            date_to=date_to.strftime('%d.%m.%Y')
+        )
+        update.message.reply_document(document=qr_file,
+                                      caption=caption)
     os.remove(BASE_DIR / qr_filename)
-    update.message.reply_text(static_text.pay_success,
+    update.message.reply_text(static_text.rent_new,
                               reply_markup=make_keyboard_for_start_command())
     return ConversationHandler.END
 
 
 '''Конец сценария оплаты'''
-
-
-# def done(update: Update, rent_description):
-
