@@ -1,11 +1,12 @@
 from datetime import date
+import os
 
 import phonenumbers
 from telegram import ParseMode, ShippingOption, Update, ReplyKeyboardRemove, \
     LabeledPrice
 from telegram.ext import CallbackContext, ConversationHandler
 
-from self_storage.settings import PROVIDER_TOKEN
+from self_storage.settings import PROVIDER_TOKEN, BASE_DIR
 from tgbot.models import StorageUser, Orders
 from tgbot.handlers.rent import static_text
 from .keyboard_utils import (
@@ -420,9 +421,10 @@ def precheckout_callback(update: Update, context: CallbackContext) -> None:
 # finally, after contacting the payment provider...
 def successful_payment_callback(update: Update, rent_description: CallbackContext) -> None:
     """Confirms the successful payment."""
-    # do something after successfully receiving payment?
-    Orders.save_order(rent_description.bot_data)
-    print(rent_description.bot_data)
+    qr_filename = Orders.save_order(rent_description.bot_data)
+    with open(qr_filename, 'rb') as qr_file:
+        update.message.reply_document(document=qr_file)
+    os.remove(BASE_DIR / qr_filename)
     update.message.reply_text(static_text.pay_success,
                               reply_markup=make_keyboard_for_start_command())
     return ConversationHandler.END

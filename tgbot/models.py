@@ -235,10 +235,10 @@ class Orders(models.Model):
     @staticmethod
     def get_order_num(order_id, user):
         return f'{order_id}-{user.telegram_id}-' \
-               f'{timezone.now().strftime("%Y%m%d - %H%M%S")}'
+               f'{timezone.now().strftime("%Y%m%d%H%M%S")}'
 
     def create_qr_code(self):
-        data = self.get_order_num()
+        data = self.get_order_num(self.id, self.user)
         filename = f'{data}.png'
         qrcode.make(data).save(filename)
         return filename
@@ -279,6 +279,7 @@ class Orders(models.Model):
             new_order.seasonal_things_count if is_seasonal else new_order.other_type_size
         )
         new_order.save()
+        return new_order.create_qr_code()
 
     class Meta:
         verbose_name = 'Заказ'

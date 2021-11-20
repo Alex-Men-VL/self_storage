@@ -5,7 +5,7 @@ from .models import StorageUser, Storage, StoredThing, Orders
 
 class StorageUserAdmin(admin.ModelAdmin):
     list_display = [
-        'telegram_id', 'username', 'first_name', 'last_name',
+        'id', 'telegram_id', 'username', 'first_name', 'last_name',
         'birth_date', 'DUL_series', 'DUL_number',
     ]
 
@@ -30,7 +30,7 @@ class OrdersAdmin(admin.ModelAdmin):
     fields = [
         'order_date', 'storage', 'user', 'seasonal_store', 'thing',
         'other_type_size', 'seasonal_things_count', 'store_duration',
-        'summa'
+        'store_duration_type', 'summa'
     ]
 
 
