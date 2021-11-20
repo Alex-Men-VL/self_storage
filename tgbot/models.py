@@ -156,15 +156,15 @@ class StoredThing(models.Model):
         """
         if self.seasonal:
             if is_month:
-                return duration * self.tariff2 * count
+                return int(duration) * self.tariff2 * int(count)
             else:
-                return duration * self.tariff1 * count
+                return int(duration) * self.tariff1 * int(count)
         else:
-            if count > 1:
-                return self.tariff1 * duration + \
-                       self.tariff2 * (count - 1) * duration
+            if int(count) > 1:
+                return self.tariff1 * int(duration) + \
+                       self.tariff2 * (int(count) - 1) * int(duration)
             else:
-                return self.tariff1 * duration
+                return self.tariff1 * int(duration)
 
     class Meta:
         verbose_name = 'Хранимая вещь'
@@ -244,6 +244,26 @@ class Orders(models.Model):
         return filename
 
     @classmethod
+    def get_order_cost(cls, order_values):
+        is_month = '1' if order_values['period_name'] == 'месяц' else '0'
+        is_seasonal = True if order_values['category'] == 'Сезонные вещи' else \
+            False
+        duration = int(order_values['period_count'])
+        if is_seasonal:
+            if is_month:
+                return duration * self.tariff2 * count
+            else:
+                return duration * self.tariff1 * count
+        else:
+            if count > 1:
+                return self.tariff1 * duration + \
+                       self.tariff2 * (count - 1) * duration
+            else:
+                return self.tariff1 * duration
+
+        pass
+
+    @classmethod
     def save_order(cls, order_values):
         seasonal_things_count = 0
         other_type_size = 0
@@ -252,13 +272,15 @@ class Orders(models.Model):
             False
 
         if is_seasonal:
-            thing = StoredThing.objects.get(thing_name=order_values['stuff_category'])
+            thing = StoredThing.objects.get(
+                thing_name=order_values['stuff_category'])
             seasonal_things_count = int(order_values['stuff_count'])
         else:
             thing = StoredThing.objects.get(thing_name=order_values['category'])
             other_type_size = int(order_values['dimensions'])
 
-        user = StorageUser.objects.get(telegram_id=order_values['user_telegram_id'])
+        user = StorageUser.objects.get(
+            telegram_id=order_values['user_telegram_id'])
 
         new_order = Orders(
             order_num=Orders.get_order_num(1, user),

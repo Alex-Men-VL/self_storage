@@ -7,7 +7,7 @@ from telegram import ParseMode, ShippingOption, Update, ReplyKeyboardRemove, \
 from telegram.ext import CallbackContext, ConversationHandler
 
 from self_storage.settings import PROVIDER_TOKEN, BASE_DIR
-from tgbot.models import StorageUser, Orders
+from tgbot.models import StorageUser, Orders, StoredThing
 from tgbot.handlers.rent import static_text
 from .keyboard_utils import (
     make_keyboard_with_addresses,
@@ -385,7 +385,19 @@ def send_shipping_callback(update: Update, context: CallbackContext):
     provider_token = PROVIDER_TOKEN
     currency = static_text.pay_currency
 
-    price = 100  # TODO: поправить
+    thing = StoredThing.objects.get(
+        thing_name=context.bot_data['stuff_category'])
+    is_month = False if context.bot_data['period_name'] == 'неделя' else True
+    if context.bot_data['category'] == 'Сезонные вещи':
+        things_count = context.bot_data['stuff_count']
+    else:
+        things_count = context.bot_data['dimensions']
+
+    price = thing.get_storage_cost(
+        context.bot_data['period_count'],
+        is_month,
+        things_count
+    )
 
     prices = [LabeledPrice("Цена", price * 100)]
 
