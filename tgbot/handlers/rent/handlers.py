@@ -57,6 +57,13 @@ def send_message_with_addresses(update: Update, _):
 
 def get_store_address(update: Update, rent_description):
     address = update.message.text
+    if address not in static_text.addresses:
+        text = static_text.choose_address
+        update.message.reply_text(
+            text=text,
+            reply_markup=make_keyboard_with_addresses(),
+        )
+        return ADDRESS
     rent_description.bot_data['address'] = address
     rent_description.bot_data['user_telegram_id'] = update.message.from_user.id
 
@@ -70,6 +77,13 @@ def get_store_address(update: Update, rent_description):
 
 def get_category(update: Update, rent_description):
     category = update.message.text
+    if category not in static_text.categories:
+        text = static_text.choose_category
+        update.message.reply_text(
+            text,
+            reply_markup=make_keyboard_with_category()
+        )
+        return CATEGORY
     rent_description.bot_data['category'] = category
     if category == static_text.categories[1]:
         text = static_text.choose_dimensions
@@ -92,6 +106,13 @@ def get_category(update: Update, rent_description):
 
 def get_dimension(update: Update, rent_description):
     dimensions = update.message.text
+    if dimensions not in static_text.dimensions:
+        text = static_text.choose_dimensions
+        update.message.reply_text(
+            text,
+            reply_markup=make_keyboard_with_dimensions()
+        )
+        return OTHER
     rent_description.bot_data[
         'dimensions'
     ] = dimensions.split(' - ')[0].split()[0]
@@ -108,6 +129,13 @@ def get_dimension(update: Update, rent_description):
 
 def get_period(update: Update, rent_description):
     period = update.message.text
+    if period not in static_text.period_12_months:
+        text = static_text.choose_period_months_12
+        update.message.reply_text(
+            text,
+            reply_markup=make_keyboard_with_period()
+        )
+        return PERIOD
     rent_description.bot_data['period_name'] = 'месяц'
     rent_description.bot_data['period_count'] = period.split(' ')[0]
 
@@ -126,6 +154,13 @@ def get_period(update: Update, rent_description):
 
 def get_stuff_category(update: Update, rent_description):
     stuff_category = update.message.text
+    if stuff_category not in static_text.stuff_categories:
+        text = static_text.choose_stuff_category
+        update.message.reply_text(
+            text,
+            reply_markup=make_keyboard_with_stuff_categories()
+        )
+        return SEASONAL
     rent_description.bot_data['stuff_category'] = stuff_category
 
     text = static_text.choose_stuff_count.format(
@@ -139,6 +174,15 @@ def get_stuff_category(update: Update, rent_description):
 
 def get_stuff_count(update: Update, rent_description):
     stuff_count = update.message.text
+    if not (stuff_count).isdigit() or stuff_count < '1':
+        stuff_category = rent_description.bot_data['stuff_category']
+        text = static_text.choose_stuff_count.format(
+            price=static_text.price[stuff_category]
+        )
+        update.message.reply_text(
+            text
+        )
+        return COUNT
     stuff_category = rent_description.bot_data['stuff_category']
     is_wheels = (stuff_category == 'Колеса')
     if is_wheels and int(stuff_count) % 4 != 0:
@@ -163,6 +207,16 @@ def get_stuff_count(update: Update, rent_description):
 
 def get_period_name(update: Update, rent_description):
     period = update.message.text
+    if period not in static_text.more_or_less_month:
+        stuff_category = rent_description.bot_data['stuff_category']
+        is_wheels = (stuff_category == 'Колеса')
+        text = static_text.choose_more_or_less_month
+        update.message.reply_text(
+            text,
+            reply_markup=make_keyboard_with_stuff_period_1(is_wheels)
+        )
+        return PERIOD1
+
     if period == static_text.more_or_less_month[0]:
         period_name = 'неделя'
         keyboard = make_keyboard_with_stuff_period_2_weeks()
@@ -181,6 +235,26 @@ def get_period_name(update: Update, rent_description):
 
 def get_period_count(update: Update, rent_description):
     period_count = update.message.text
+    period_name = rent_description.bot_data['period_name']
+    if (period_name == 'неделя' and
+            period_count not in static_text.period_3_weeks):
+        keyboard = make_keyboard_with_stuff_period_2_weeks()
+        text = static_text.specify_period
+        update.message.reply_text(
+            text,
+            reply_markup=keyboard
+        )
+        return PERIOD2
+    elif (period_name == 'месяц' and
+            period_count not in static_text.period_6_months):
+        keyboard = make_keyboard_with_stuff_period_2_months()
+        text = static_text.specify_period
+        update.message.reply_text(
+            text,
+            reply_markup=keyboard
+        )
+        return PERIOD2
+
     rent_description.bot_data['period_count'] = period_count.split()[0]
 
     text = static_text.order_confirmation
@@ -197,6 +271,13 @@ def get_period_count(update: Update, rent_description):
 
 
 def send_message_with_pd(update: Update, _):
+    if update.message.text != static_text.reserve[0]:
+        text = static_text.order_confirmation
+        update.message.reply_text(
+            text,
+            reply_markup=make_keyboard_with_confirmation()
+        )
+        return PD
     user = StorageUser.objects.get(telegram_id=update.message.from_user.id)
     if user.there_is_pd:
         text = static_text.personal_data_from_bd.format(
@@ -230,7 +311,7 @@ def get_action_with_pd(update: Update, _):
         update.message.reply_text(text=text,
                                   reply_markup=make_keyboard_with_invoice())
         return PAY
-    else:
+    elif update.message.text == static_text.skip_change_pd[1]:
         text = static_text.request_consent
         with open(CONSENT_PD_FILEPATH, 'rb') as consent_file:
             update.message.reply_document(
@@ -239,6 +320,13 @@ def get_action_with_pd(update: Update, _):
                 reply_markup=make_keyboard_with_consent()
             )
         return CONSENT
+    else:
+        text = static_text.personal_data_from_bd_short
+        update.message.reply_text(
+            text=text,
+            reply_markup=make_keyboard_with_skip_change_pd()
+        )
+        return SELECT_PD
 
 
 def get_user_consent(update: Update, _):
@@ -249,11 +337,19 @@ def get_user_consent(update: Update, _):
             reply_markup=make_keyboard_with_consent()
         )
         return CONSENT
-    text = static_text.request_fio
-    update.message.reply_text(
-        text=text
-    )
-    return FIO
+    elif update.message.text == static_text.consent_button[0]:
+        text = static_text.request_fio
+        update.message.reply_text(
+            text=text
+        )
+        return FIO
+    else:
+        text = static_text.request_consent
+        update.message.reply_text(
+            text=text,
+            reply_markup=make_keyboard_with_consent()
+        )
+        return CONSENT
 
 
 def get_fio(update: Update, user_pd):
@@ -396,6 +492,11 @@ def update_data_in_database(user_pd):
 
 
 def send_shipping_callback(update: Update, context: CallbackContext):
+    if update.message.text != static_text.send_invoice[0]:
+        text = static_text.pay_request
+        update.message.reply_text(text=text,
+                                  reply_markup=make_keyboard_with_invoice())
+        return PAY
     chat_id = update.message.chat_id
     title = static_text.pay_title
 
@@ -433,19 +534,9 @@ def send_shipping_callback(update: Update, context: CallbackContext):
         chat_id, title, description, payload, provider_token, currency, prices
     )
 
-'''
-def shipping_callback(update: Update, context: CallbackContext) -> None:
-    """Answers the ShippingQuery with ShippingOptions"""
-    query = update.shipping_query
-    # check the payload, is this from your bot?
-    if query.invoice_payload != static_text.pay_payload:
-        # answer False pre_checkout_query
-        query.answer(ok=False, error_message=static_text.pay_error)
-        return'''
-
 
 # after (optional) shipping, it's the pre-checkout
-def precheckout_callback(update: Update, context: CallbackContext) -> None:
+def precheckout_callback(update: Update, _) -> None:
     """Answers the PreQecheckoutQuery"""
     query = update.pre_checkout_query
     # check the payload, is this from your bot?

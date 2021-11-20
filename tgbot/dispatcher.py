@@ -104,15 +104,9 @@ def setup_dispatcher(dp):
 
     dp.add_handler(CommandHandler("start", common_handlers.command_start))
 
-    # dp.add_handler(ShippingQueryHandler(rent_handlers.shipping_callback))
-
     # Pre-checkout handler to final check
     dp.add_handler(PreCheckoutQueryHandler(rent_handlers.precheckout_callback))
 
-    # Success! Notify your user!
-    # dp.add_handler(
-    #     MessageHandler(Filters.successful_payment,
-    #                    rent_handlers.successful_payment_callback))
     return dp
 
 
