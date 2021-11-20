@@ -438,7 +438,7 @@ def get_dul(update: Update, user_pd):
 
 def get_birthdate(update: Update, user_pd):
     birth_date = update.message.text
-    birth_date.replace(',', '.')
+    birth_date = birth_date.replace(',', '.')
     try:
         day, month, year = birth_date.split('.')
         if len(day) > 2 or len(month) > 2 or len(year) != 4:
