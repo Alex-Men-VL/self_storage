@@ -23,6 +23,8 @@ from .keyboard_utils import (
     make_keyboard_with_invoice,
 )
 
+from ..common.keyboard_utils import make_keyboard_for_start_command
+
 (ADDRESS,
  CATEGORY,
  OTHER,
@@ -384,7 +386,7 @@ def send_shipping_callback(update: Update, context: CallbackContext):
 
     price = 100  # TODO: поправить
 
-    prices = [LabeledPrice("Test", price * 100)]
+    prices = [LabeledPrice("Цена", price * 100)]
 
     # optionally pass need_name=True, need_phone_number=True,
     # need_email=True, need_shipping_address=True, is_flexible=True
@@ -421,7 +423,8 @@ def successful_payment_callback(update: Update, rent_description: CallbackContex
     # do something after successfully receiving payment?
     Orders.save_order(rent_description.bot_data)
     print(rent_description.bot_data)
-    update.message.reply_text(static_text.pay_success)
+    update.message.reply_text(static_text.pay_success,
+                              reply_markup=make_keyboard_for_start_command())
     return ConversationHandler.END
 
 
