@@ -333,7 +333,7 @@ def get_birthdate(update: Update, user_pd):
 
     text = 'Перейти к оплате'
     update.message.reply_text(text=text,
-                              reply_markup=make_keyboard_with_invoice)
+                              reply_markup=make_keyboard_with_invoice())
 
     return PAY
 
@@ -382,7 +382,7 @@ def send_shipping_callback(update: Update, context: CallbackContext):
     provider_token = PROVIDER_TOKEN
     currency = static_text.pay_currency
 
-    price = 100
+    price = 100  # TODO: поправить
 
     prices = [LabeledPrice("Test", price * 100)]
 
