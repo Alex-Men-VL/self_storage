@@ -88,7 +88,8 @@ rent_handler = ConversationHandler(
     },
     fallbacks=[
         MessageHandler(Filters.successful_payment,
-                       rent_handlers.successful_payment_callback)
+                       rent_handlers.successful_payment_callback),
+        CommandHandler("cancel", common_handlers.command_cancel)
     ]
 
 )
@@ -99,7 +100,7 @@ def setup_dispatcher(dp):
 
     dp.add_handler(CommandHandler("start", common_handlers.command_start))
 
-    dp.add_handler(ShippingQueryHandler(rent_handlers.shipping_callback))
+    # dp.add_handler(ShippingQueryHandler(rent_handlers.shipping_callback))
 
     # Pre-checkout handler to final check
     dp.add_handler(PreCheckoutQueryHandler(rent_handlers.precheckout_callback))
@@ -142,11 +143,11 @@ def set_up_commands(bot_instance: Bot) -> None:
     langs_with_commands: Dict[str, Dict[str, str]] = {
         'en': {
             'start': 'Start django bot 🚀',
-            'done': 'Get info',
+            'cancel': 'Go back to the main menu',
         },
         'ru': {
             'start': 'Запустить django бота 🚀',
-            'done': 'Получить инфу',
+            'cancel': 'Вернуться в главное меню',
         }
     }
 
