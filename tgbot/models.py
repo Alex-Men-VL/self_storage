@@ -179,7 +179,7 @@ class Orders(models.Model):
     Справочник заказов
     """
     order_num = models.CharField(
-        max_length=10,
+        max_length=100,
         unique=True,
         null=False,
         blank=False,

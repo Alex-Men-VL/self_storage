@@ -575,7 +575,7 @@ def successful_payment_callback(update: Update, rent_description: CallbackContex
         )
         update.message.reply_document(document=qr_file,
                                       caption=caption)
-    os.remove(BASE_DIR / qr_filename)
+    # os.remove(BASE_DIR / qr_filename)
     update.message.reply_text(static_text.rent_new,
                               reply_markup=make_keyboard_for_start_command())
     return ConversationHandler.END
