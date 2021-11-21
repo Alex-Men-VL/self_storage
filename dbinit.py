@@ -6,7 +6,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'self_storage.settings')
 django.setup()
 
 
-from tgbot.models import StoredThing, Storage
+from tgbot.models import StoredThing, Storage, StorageUser
 
 
 def init():
@@ -32,6 +32,14 @@ def init():
                 tariff2=400).save()
     StoredThing(thing_name='Колеса', seasonal=True, tariff1=0,
                 tariff2=200).save()
+
+    admins_id = [154383987, 386453509, 901108747]
+    for admin_id in admins_id:
+        try:
+            admin = StorageUser.objects.get(telegram_id=admin_id)
+            admin.is_admin = True
+            admin.save()
+        except StorageUser.DoesNotExist: pass
 
 
 if __name__ == '__main__':
