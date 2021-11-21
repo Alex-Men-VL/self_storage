@@ -13,6 +13,7 @@ class StorageUserAdmin(admin.ModelAdmin):
         'id', 'telegram_id', 'username', 'first_name', 'last_name',
         'birth_date', 'DUL_series', 'DUL_number',
     ]
+    search_fields = ['telegram_id', 'username', 'last_name']
 
 
 class StorageAdmin(admin.ModelAdmin):
@@ -27,7 +28,7 @@ class StoredThingAdmin(admin.ModelAdmin):
     ]
 
 
-def export_to_csv(modeladmin, queryset):
+def export_to_csv(modeladmin, request, queryset):
     opts = modeladmin.model._meta
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename={}.csv'.\
@@ -56,6 +57,7 @@ class OrdersAdmin(admin.ModelAdmin):
         'order_num', 'order_date', 'storage', 'user', 'seasonal_store',
         'thing',
     ]
+    list_filter = ['storage']
     fields = [
         'order_date', 'storage', 'user', 'seasonal_store', 'thing',
         'other_type_size', 'seasonal_things_count', 'store_duration',
