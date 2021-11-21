@@ -244,26 +244,6 @@ class Orders(models.Model):
         return filename
 
     @classmethod
-    def get_order_cost(cls, order_values):
-        is_month = '1' if order_values['period_name'] == 'месяц' else '0'
-        is_seasonal = True if order_values['category'] == 'Сезонные вещи' else \
-            False
-        duration = int(order_values['period_count'])
-        if is_seasonal:
-            if is_month:
-                return duration * self.tariff2 * count
-            else:
-                return duration * self.tariff1 * count
-        else:
-            if count > 1:
-                return self.tariff1 * duration + \
-                       self.tariff2 * (count - 1) * duration
-            else:
-                return self.tariff1 * duration
-
-        pass
-
-    @classmethod
     def save_order(cls, order_values):
         seasonal_things_count = 0
         other_type_size = 0
