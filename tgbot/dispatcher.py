@@ -15,6 +15,7 @@ import telegram.error
 from self_storage.settings import TELEGRAM_TOKEN, DEBUG
 from tgbot.handlers.common import handlers as common_handlers
 from tgbot.handlers.rent import handlers as rent_handlers
+from tgbot.handlers.admin import handlers as admin_handlers
 
 
 rent_handler = ConversationHandler(
@@ -105,6 +106,9 @@ def setup_dispatcher(dp):
     dp.add_handler(CommandHandler("start", common_handlers.command_start))
     dp.add_handler(CommandHandler("cancel", common_handlers.command_cancel))
 
+    dp.add_handler(CommandHandler("admin", admin_handlers.command_admin))
+    dp.add_handler(CallbackQueryHandler(admin_handlers.send_orders_statistics))
+
     # Pre-checkout handler to final check
     dp.add_handler(PreCheckoutQueryHandler(rent_handlers.precheckout_callback))
 
@@ -141,9 +145,11 @@ except telegram.error.Unauthorized:
 def set_up_commands(bot_instance: Bot) -> None:
     langs_with_commands: Dict[str, Dict[str, str]] = {
         'en': {
+            'admin': 'Get administrator rights',
             'cancel': 'Go back to the main menu',
         },
         'ru': {
+            'admin': 'Получить права администратора',
             'cancel': 'Вернуться в главное меню',
         }
     }
@@ -163,5 +169,5 @@ def set_up_commands(bot_instance: Bot) -> None:
 # Likely, you'll get a flood limit control error, when restarting bot too often
 set_up_commands(bot)
 
-n_workers = 0 if DEBUG else 4
+n_workers = 1 if DEBUG else 4
 dispatcher = setup_dispatcher(Dispatcher(bot, update_queue=None, workers=n_workers, use_context=True))

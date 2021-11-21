@@ -57,6 +57,12 @@ class StorageUser(models.Model):
         default=False,
         verbose_name='Есть ли личные данные'
     )
+    is_admin = models.BooleanField(
+        null=True,
+        blank=True,
+        default=False,
+        verbose_name='Администратор'
+    )
 
     def __str__(self):
         if self.username:
