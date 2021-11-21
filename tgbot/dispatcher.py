@@ -141,11 +141,9 @@ except telegram.error.Unauthorized:
 def set_up_commands(bot_instance: Bot) -> None:
     langs_with_commands: Dict[str, Dict[str, str]] = {
         'en': {
-            'start': 'Start django bot 🚀',
             'cancel': 'Go back to the main menu',
         },
         'ru': {
-            'start': 'Запустить django бота 🚀',
             'cancel': 'Вернуться в главное меню',
         }
     }
