@@ -5,11 +5,10 @@ import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'self_storage.settings')
 django.setup()
 
-from tgbot.models import StoredThing, Storage, StorageUser
+from tgbot.models import StoredThing, Storage
 from db_constants import (
     storages,
     stored_things,
-    admins_id,
 )
 
 
@@ -27,14 +26,6 @@ def init():
             tariff1=property['tariff1'],
             tariff2=property['tariff2']
         )
-
-    for admin_id in admins_id:
-        try:
-            admin = StorageUser.objects.get(telegram_id=admin_id)
-            admin.is_admin = True
-            admin.save()
-        except StorageUser.DoesNotExist:
-            pass
 
 
 if __name__ == '__main__':
